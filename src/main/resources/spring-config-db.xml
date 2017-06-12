@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:context="http://www.springframework.org/schema/c"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+    <!-- 自动扫描 -->
+    <context:component-scan base-package="top.bigpong" />
+
+    <!-- 加载jdbc.properties -->
+    <!-- 方式一 -->
+    <util:properties id="jdbc" location="classpath:jdbc-basic.properties">
+    </util:properties>
+
+    <!-- 方式二 -->
+    <!--<context:property-placeholder location="classpath:jdbc-basic.properties" ignore-unresolvable="true"/>-->
+
+    <!-- 声明连接池 -->
+    <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
+        <property name="driverClassName" value="#{jdbc.driver}"></property>
+        <property name="url" value="#{jdbc.url}"></property>
+        <property name="username" value="#{jdbc.username}"></property>
+        <property name="password" value="#{jdbc.password}"></property>
+    </bean>
+
+    <!-- 配置Session工厂/Spring整合mybatis -->
+    <bean id="sessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!-- 注入DateSource -->
+        <property name="dataSource" ref="dataSource"/>
+        <!--
+            需要加载的mapper.xml,该bean被创建后会自动加载这些文件
+            value:文件的路径
+        -->
+        <!-- 当前目录下没有xml文件，会报红 -->
+        <property name="mapperLocations" value="classpath:top/bigpong/mapper/*.xml"/>
+    </bean>
+
+    <!-- 配置MapperScannerConfigurer -->
+    <bean id="mapperScannerConfigurer" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <!--
+            注入需要扫描的包,它会自动扫描这个包下的接口，
+            然后实现这些接口，并且会实例化这些接口的实现类
+        -->
+        <property name="basePackage" value="top.bigpong.dao"/>
+        <!--
+            默认情况下，该bean会扫描指定包下所有的接口。
+            如果不希望它扫描所有的接口，那么可以用注解来声明要扫描的接口。
+            该注解需要我们自己定义，并且将这个注解注入给当前的bean
+         -->
+        <!--<property name="annotationClass" value="com.tarena.annotation.MyBatisRepository"/>-->
+    </bean>
+</beans>
